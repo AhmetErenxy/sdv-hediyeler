@@ -1,5 +1,11 @@
-const CACHE = 'sdv-gifts-v1';
-const ASSETS = ['/', '/index.html'];
+const CACHE = 'sdv-gifts-v2';
+const BASE = '/sdv-hediyeler';
+const ASSETS = [
+  BASE + '/',
+  BASE + '/index.html',
+  BASE + '/manifest.json',
+  BASE + '/sw.js'
+];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
@@ -15,8 +21,10 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   e.respondWith(
-    caches.match(e.request).then(r => r || fetch(e.request).catch(() =>
-      caches.match('/index.html')
-    ))
+    caches.match(e.request).then(r => r || fetch(e.request).then(res => {
+      const clone = res.clone();
+      caches.open(CACHE).then(c => c.put(e.request, clone));
+      return res;
+    })).catch(() => caches.match(BASE + '/index.html'))
   );
 });
