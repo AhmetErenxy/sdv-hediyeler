@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#1a1a2e"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="SDV Hediyeler"/>
+<title>SDV Hediyeler</title>
+<link rel="manifest" href="manifest.json"/>
+<style>
+  :root {
+    --bg: #0f0f1a; --surface: #1a1a2e; --surface2: #222240;
+    --accent: #7c6fff; --accent2: #ff6b9d;
+    --text: #e8e6ff; --text2: #9896b8; --text3: #5a5878;
+    --border: rgba(124,111,255,0.15); --border2: rgba(124,111,255,0.3);
+    --radius: 14px; --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: -apple-system, 'Helvetica Neue', sans-serif; overflow: hidden; }
+  #app { display: flex; flex-direction: column; height: 100dvh; }
+  header { padding: 16px 16px 12px; background: var(--surface); border-bottom: 0.5px solid var(--border); }
+  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .logo { font-size: 17px; font-weight: 700; color: var(--text); }
+  .logo span { color: var(--accent); }
+  .fav-count { font-size: 12px; color: var(--text2); background: var(--surface2); padding: 4px 10px; border-radius: 999px; border: 0.5px solid var(--border); }
+  .search-wrap { position: relative; }
+  .search-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.4; }
+  #search { width: 100%; padding: 10px 12px 10px 36px; background: var(--surface2); border: 0.5px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 15px; outline: none; }
+  #search::placeholder { color: var(--text3); }
+  #search:focus { border-color: var(--border2); }
+  .tabs { display: flex; gap: 6px; padding: 10px 16px; background: var(--surface); border-bottom: 0.5px solid var(--border); overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 500; white-space: nowrap; border: 0.5px solid var(--border); color: var(--text2); background: transparent; cursor: pointer; transition: all 0.15s; flex-shrink: 0; }
+  .tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  #list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; -webkit-overflow-scrolling: touch; }
+  .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .card-head { display: flex; align-items: center; padding: 12px 14px; gap: 12px; cursor: pointer; }
+  .avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; }
+  .card-info { flex: 1; min-width: 0; }
+  .card-name { font-size: 15px; font-weight: 600; color: var(--text); }
+  .card-sub { font-size: 12px; color: var(--text3); margin-top: 1px; }
+  .fav-btn { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: none; background: none; cursor: pointer; font-size: 20px; color: var(--text3); transition: all 0.15s; flex-shrink: 0; }
+  .fav-btn.on { color: var(--accent2); }
+  .chevron { font-size: 12px; color: var(--text3); transition: transform 0.2s; margin-left: -4px; }
+  .chevron.open { transform: rotate(90deg); }
+  .gifts-panel { display: none; padding: 0 14px 14px; flex-wrap: wrap; gap: 6px; }
+  .gifts-panel.open { display: flex; }
+  .gift-tag { font-size: 12px; padding: 4px 10px; border-radius: 999px; background: var(--surface2); color: var(--text2); border: 0.5px solid var(--border); }
+  .gift-tag.hl { background: rgba(124,111,255,0.15); color: var(--accent); border-color: rgba(124,111,255,0.3); }
+  .empty { text-align: center; color: var(--text3); font-size: 14px; padding: 3rem 0; }
+  #install-bar { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 0.5px solid var(--border2); padding: 12px 16px; flex-direction: row; align-items: center; gap: 10px; z-index: 99; }
+  #install-bar.show { display: flex; }
+  #install-bar p { flex: 1; font-size: 13px; color: var(--text2); }
+  #install-btn { padding: 8px 16px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; }
+  #install-close { font-size: 20px; color: var(--text3); background: none; border: none; cursor: pointer; }
+  mark { background: rgba(255,107,157,0.25); color: var(--accent2); border-radius: 3px; padding: 0 1px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="header-top">
+      <div class="logo">SDV <span>Hediyeler</span></div>
+      <div class="fav-count" id="fav-count">0 favori</div>
+    </div>
+    <div class="search-wrap">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="search" type="search" placeholder="Karakter veya hediye ara..." autocomplete="off" autocorrect="off"/>
+    </div>
+  </header>
+  <div class="tabs" id="tabs"></div>
+  <div id="list"></div>
+</div>
+<div id="install-bar">
+  <p>Ana ekrana ekle, internetsiz kullan!</p>
+  <button id="install-btn">Ekle</button>
+  <button id="install-close">×</button>
+</div>
+<script>
+const CHARS = [
+  {n:"Abigail",g:"Evlenilebilir",c:"#8B5CF6",gifts:["Ametist","Böğürtlenli Kek","Çikolatalı Pasta","Balonbalığı","Balkabağı","Acılı Yılanbalığı"]},
+  {n:"Emily",g:"Evlenilebilir",c:"#EC4899",gifts:["Ametist","Akuamarin","Kumaş","Zümrüt","Yeşim Taşı","Yakut","Hayatta Kalma Burgeri","Topaz","Yün"]},
+  {n:"Haley",g:"Evlenilebilir",c:"#F59E0B",gifts:["Hindistan Cevizi","Meyveli Salata","Pembe Pasta","Ayçiçeği"]},
+  {n:"Leah",g:"Evlenilebilir",c:"#10B981",gifts:["Keçi Peyniri","Haşhaşlı Muffin","Salata","Soteli Sebze","Trüf Mantarı","Sebze Karışımı","Şarap"]},
+  {n:"Maru",g:"Evlenilebilir",c:"#3B82F6",gifts:["Pil Paketi","Karnabahar","Peynirli Karnabahar","Elmas","Altın Külçe","İridyum Külçesi","Madenci İkramı","Acılı Biber Böreği","Ravent Turtası","Çilek"]},
+  {n:"Penny",g:"Evlenilebilir",c:"#EF4444",gifts:["Elmas","Zümrüt","Kavun","Haşhaş","Haşhaşlı Muffin","Kırmızı Tabak","Kök Tabağı","Kum Balığı","Tavuklu Ceviz Çorbası"]},
+  {n:"Alex",g:"Evlenilebilir",c:"#6366F1",gifts:["Bütün Kahvaltı","Pişmiş Somon"]},
+  {n:"Elliott",g:"Evlenilebilir",c:"#14B8A6",gifts:["Yengeçli Köfte","Ördek Tüyü","Istakoz","Nar","Tavuklu Ceviz Çorbası"]},
+  {n:"Harvey",g:"Evlenilebilir",c:"#84CC16",gifts:["Kahve","Turşu","Süper Öğün","Trüf Mantarı Yağı","Şarap"]},
+  {n:"Sam",g:"Evlenilebilir",c:"#F97316",gifts:["Kaktüs Meyvesi","Akçaağaç Çubuğu","Pizza","Kaplan Gözü"]},
+  {n:"Sebastian",g:"Evlenilebilir",c:"#60A5FA",gifts:["Donmuş Gözyaşı","Obsidyen","Balkabağı Çorbası","Sashimi","Boşluk Yumurtası"]},
+  {n:"Shane",g:"Evlenilebilir",c:"#7C3AED",gifts:["Bira","Acı Biber","Acılı Biber Böreği","Pizza"]},
+  {n:"Caroline",g:"Köylü",c:"#059669",gifts:["Balıklı Taco","Yaz Fulkülü"]},
+  {n:"Clint",g:"Köylü",c:"#78716C",gifts:["Ametist","Akuamarin","Enginar Sosu","Zümrüt","Eğreltiotlu Risotto","Altın Külçe","İridyum Külçesi","Yeşim Taşı","Bütünjeot","Yakut","Topaz"]},
+  {n:"Demetrius",g:"Köylü",c:"#92400E",gifts:["Fasulye Güveci","Dondurma","Sütlaç","Çilek"]},
+  {n:"Cüce",g:"Köylü",c:"#6D28D9",gifts:["Ametist","Akuamarin","Zümrüt","İridyum Külçesi","Yeşim Taşı","Bütünjeot","Yakut","Topaz"]},
+  {n:"Evelyn",g:"Köylü",c:"#DB2777",gifts:["Pancar","Çikolatalı Pasta","Elmas","Peri Gülü","Dolma","Lale"]},
+  {n:"George",g:"Köylü",c:"#78350F",gifts:["Kızarmış Mantar","Pırasa"]},
+  {n:"Gus",g:"Köylü",c:"#B45309",gifts:["Elmas","Salyangoz","Balıklı Taco","Portakal"]},
+  {n:"Jas",g:"Köylü",c:"#A78BFA",gifts:["Peri Gülü","Pembe Pasta","Erik Pudingi"]},
+  {n:"Jodi",g:"Köylü",c:"#BE185D",gifts:["Çikolatalı Pasta","Çıtır Levrek","Elmas","Patlıcan Parmesanı","Kızarmış Yılanbalığı","Krep","Ravent Turtası","Sebze Karışımı"]},
+  {n:"Kent",g:"Köylü",c:"#1D4ED8",gifts:["Eğreltiotlu Risotto","Kavrulmuş Fındık"]},
+  {n:"Krobus",g:"Köylü",c:"#6B7280",gifts:["İridyum Külçesi","Balkabağı","Boşluk Yumurtası","Boşluk Mayonezi","Yabani Bayır Turpu"]},
+  {n:"Lewis",g:"Köylü",c:"#065F46",gifts:["Sonbahar Bereketi","Sırlı Tatlı Patates","Acı Biber","Sebze Karışımı"]},
+  {n:"Linus",g:"Köylü",c:"#4B5563",gifts:["Yaban Mersini Turtası","Deniz Yemeği","Hindistan Cevizi","Kaktüs Meyvesi","Şalgam"]},
+  {n:"Marnie",g:"Köylü",c:"#D97706",gifts:["Elmas","Çiftçi Öğle Yemeği","Pembe Pasta","Balkabağı Turtası"]},
+  {n:"Pam",g:"Köylü",c:"#7C2D12",gifts:["Bira","Kaktüs Meyvesi","Sırlı Tatlı Patates","Bal Şarabı","Soluk Bira","Havuç","Havuç Çorbası"]},
+  {n:"Pierre",g:"Köylü",c:"#166534",gifts:["Kalamar Kızartması"]},
+  {n:"Robin",g:"Köylü",c:"#B45309",gifts:["Keçi Peyniri","Şeftali","Spagetti"]},
+  {n:"Sandy",g:"Köylü",c:"#F472B6",gifts:["Çiğdem","Nergis","Tatlı Bezelye"]},
+  {n:"Vincent",g:"Köylü",c:"#7C3AED",gifts:["Kızılcık Şekeri","Üzüm","Pembe Pasta"]},
+  {n:"Willy",g:"Köylü",c:"#1E40AF",gifts:["Yayın Balığı","Elmas","İridyum Külçesi","Bal Şarabı","Ahtapot","Balkabağı","Denizhıyarı","Mersin Balığı"]},
+  {n:"Büyücü",g:"Köylü",c:"#5B21B6",gifts:["Mor Mantar","Güneş Özü","Büyük Denizhıyarı","Boşluk Özü"]},
+];
+
+let favs = JSON.parse(localStorage.getItem('sdv_favs')||'[]');
+let activeTab = 'Tümü';
+let expanded = new Set();
+
+const tabs = ['Tümü','Favoriler','Evlenilebilir','Köylü'];
+const tabsEl = document.getElementById('tabs');
+tabs.forEach(t => {
+  const el = document.createElement('button');
+  el.className = 'tab' + (t===activeTab?' active':'');
+  el.textContent = t === 'Favoriler' ? '♥ Favoriler' : t;
+  el.onclick = () => { activeTab = t; render(); document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active')); el.classList.add('active'); };
+  tabsEl.appendChild(el);
+});
+
+const searchEl = document.getElementById('search');
+searchEl.addEventListener('input', render);
+
+function initials(n){ return n.slice(0,2).toUpperCase(); }
+function esc(s){ return s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function hl(text, q){
+  if(!q) return esc(text);
+  const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+  return esc(text).replace(re, '<mark>$1</mark>');
+}
+
+function render(){
+  const q = searchEl.value.toLowerCase().trim();
+  let list = CHARS.filter(c => {
+    const matchQ = !q || c.n.toLowerCase().includes(q) || c.gifts.some(g=>g.toLowerCase().includes(q));
+    const matchTab = activeTab==='Tümü' || (activeTab==='Favoriler'?favs.includes(c.n):c.g===activeTab);
+    return matchQ && matchTab;
+  });
+  document.getElementById('fav-count').textContent = favs.length + ' favori';
+  const listEl = document.getElementById('list');
+  if(!list.length){ listEl.innerHTML='<div class="empty">Sonuç bulunamadı</div>'; return; }
+  listEl.innerHTML = list.map(c => {
+    const isFav = favs.includes(c.n);
+    const isOpen = expanded.has(c.n);
+    const bg = c.c + '28';
+    const gifts = (q && !c.n.toLowerCase().includes(q)) ? c.gifts.filter(g=>g.toLowerCase().includes(q)) : c.gifts;
+    return `<div class="card">
+      <div class="card-head" onclick="toggle('${c.n.replace(/'/g,"\\'")}')">
+        <div class="avatar" style="background:${bg};color:${c.c}">${initials(c.n)}</div>
+        <div class="card-info">
+          <div class="card-name">${hl(c.n,q)}</div>
+          <div class="card-sub">${c.g} · ${c.gifts.length} hediye</div>
+        </div>
+        <button class="fav-btn ${isFav?'on':''}" onclick="event.stopPropagation();toggleFav('${c.n.replace(/'/g,"\\'")}')">♥</button>
+        <span class="chevron ${isOpen?'open':''}">›</span>
+      </div>
+      <div class="gifts-panel ${isOpen?'open':''}">
+        ${gifts.map(g=>`<span class="gift-tag ${q&&g.toLowerCase().includes(q)?'hl':''}">${hl(g,q)}</span>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggle(name){
+  if(expanded.has(name)) expanded.delete(name); else expanded.add(name);
+  render();
+}
+function toggleFav(name){
+  if(favs.includes(name)) favs=favs.filter(f=>f!==name); else favs.push(name);
+  localStorage.setItem('sdv_favs',JSON.stringify(favs));
+  render();
+}
+
+render();
+
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; document.getElementById('install-bar').classList.add('show'); });
+document.getElementById('install-btn').onclick = async () => { if(deferredPrompt){ deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; } document.getElementById('install-bar').classList.remove('show'); };
+document.getElementById('install-close').onclick = () => document.getElementById('install-bar').classList.remove('show');
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+</script>
+</body>
+</html>
